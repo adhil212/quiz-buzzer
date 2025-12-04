@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Buzzer Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #1e3c72, #2a5298);
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: #fff;
+    }
+    .card {
+      background: rgba(255,255,255,0.1);
+      padding: 24px 28px;
+      border-radius: 16px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+      width: 100%;
+      max-width: 360px;
+      backdrop-filter: blur(10px);
+    }
+    h1 {
+      margin-top: 0;
+      margin-bottom: 18px;
+      font-size: 1.8rem;
+      text-align: center;
+    }
+    label {
+      font-size: 0.9rem;
+      display: block;
+      margin-bottom: 6px;
+    }
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: none;
+      margin-bottom: 14px;
+      font-size: 1rem;
+      outline: none;
+      box-sizing: border-box;
+    }
+    .btn {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      background: #4caf50;
+      color: #fff;
+      margin-top: 4px;
+    }
+    .btn:hover {
+      opacity: 0.9;
+      transform: scale(1.01);
+    }
+    .link {
+      margin-top: 10px;
+      text-align: center;
+      font-size: 0.9rem;
+    }
+    .link a {
+      color: #ffeb3b;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Buzzer Login</h1>
+    <form method="POST" action="/login">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required />
+
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" required />
+
+      <button type="submit" class="btn">Login</button>
+    </form>
+
+    <div class="link">
+      New here? <a href="/signup.html">Create an account</a>
+    </div>
+  </div>
+</body>
+</html>
