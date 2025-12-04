@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Team Buzzer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg1: #150035;
+      --bg2: #330066;
+      --glow1: #ff00ff;
+      --glow2: #00eaff;
+      --glow3: #ffea00;
+      --white: #ffffff;
+
+      /* buzzer color variables (JS will override these) */
+      --buzzer-color: #ff0066;
+      --buzzer-dark: #c500ff;
+      --buzzer-glow: #ff1100;
+    }
+
+    body, button, h1, .buzzer, .small, #info {
+      font-family: 'Fredoka One', cursive !important;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: radial-gradient(circle at center, var(--bg2), var(--bg1));
+      color: white;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Floating neon bubbles */
+    body::before,
+    body::after {
+      content: "";
+      position: absolute;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, var(--glow1), transparent 70%);
+      filter: blur(120px);
+      opacity: 0.6;
+      animation: float 12s infinite ease-in-out alternate;
+    }
+
+    body::after {
+      background: radial-gradient(circle, var(--glow2), transparent 70%);
+      animation-duration: 16s;
+    }
+
+    @keyframes float {
+      0% { transform: translate(-200px, -200px); }
+      100% { transform: translate(200px, 200px); }
+    }
+
+    .card {
+      width: 90%;
+      max-width: 450px;
+      padding: 25px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.06);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 0 25px rgba(0,0,0,0.4);
+      position: relative;
+      z-index: 10;
+      border: 2px solid rgba(255,255,255,0.15);
+      animation: popIn 0.6s ease;
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0.7); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    h1 {
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      color: red;
+      margin-bottom: 10px;
+    }
+
+    #teamName {
+      color: var(--glow3);
+    }
+
+    .status {
+      padding: 5px 10px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.12);
+      font-weight: 600;
+    }
+    .status.ok { color: #6aff6a; }
+    .status.off { color: #ff5757; }
+
+    #info {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 1rem;
+      opacity: 0.9;
+    }
+
+    /* Circular buzzer uses CSS vars that JS will update */
+    .buzzer {
+      width: 220px;
+      height: 220px;
+      margin: 25px auto 0 auto;
+      border-radius: 50%;
+      border: none;
+      font-size: 2rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+
+      background: radial-gradient(circle at center, var(--buzzer-color), var(--buzzer-dark) 70%);
+      color: white;
+      text-shadow: 0 0 8px rgba(255,255,255,0.7);
+
+      box-shadow:
+        0 0 25px var(--buzzer-glow),
+        0 0 45px var(--buzzer-glow),
+        0 0 65px var(--buzzer-glow),
+        inset 0 0 20px rgba(255,255,255,0.4);
+
+      transition: transform 0.15s ease, box-shadow 0.2s ease, opacity 0.15s ease, filter 0.15s ease;
+    }
+
+    .buzzer:hover {
+      transform: scale(1.07);
+      box-shadow:
+        0 0 35px var(--buzzer-glow),
+        0 0 60px var(--glow2),
+        0 0 80px var(--glow3),
+        inset 0 0 25px rgba(255,255,255,0.5);
+    }
+
+    .buzzer:active {
+      transform: scale(0.93);
+      box-shadow:
+        0 0 20px var(--buzzer-glow),
+        0 0 30px var(--glow2),
+        inset 0 0 18px rgba(255,255,255,0.6);
+    }
+
+    /* Disabled appearance */
+    .buzzer[disabled] {
+      opacity: 0.35;
+      filter: grayscale(30%) saturate(50%);
+      cursor: not-allowed;
+      transform: none !important;
+      box-shadow: none !important;
+    }
+
+    .small {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+
+    footer {
+      margin-top: 15px;
+      text-align: center;
+      opacity: 0.7;
+      font-size: 0.8rem;
+    }
+
+    .btn {
+      padding: 10px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      border: none;
+      color: white;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(5px);
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      background: rgba(255,255,255,0.25);
+      transform: scale(1.06);
+    }
+
+    #lastResult {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--glow2);
+      text-shadow: 0 0 10px var(--glow2);
+      text-align: center;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    :root {
+  --bg1: #150035;
+  --bg2: #330066;
+  --glow1: #ff00ff;
+  --glow2: #00eaff;
+  --glow3: #ffea00;
+  --white: #ffffff;
+
+  --buzzer-color: #ff0066;
+  --buzzer-dark: #c500ff;
+  --buzzer-glow: #ff1100;
+}
+
+body, button, h1, .buzzer, .small, #info {
+  font-family: 'Fredoka One', cursive !important;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(120deg, #12002d, #310066, #4b0f80);
+  background-size: 300% 300%;
+  animation: auroraMove 15s ease infinite;
+}
+
+/* 🌈 Aurora gradient wave movement */
+@keyframes auroraMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ✨ Floating glowing particles */
+.particle {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: rgba(255,255,255,0.7);
+  border-radius: 50%;
+  box-shadow: 0 0 8px white, 0 0 12px var(--glow2);
+  animation: floatUp 7s linear infinite;
+  opacity: 0.8;
+}
+
+@keyframes floatUp {
+  0% { transform: translateY(40vh) scale(0.6); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-50vh) scale(1.2); opacity: 0; }
+}
+
+/* 🎯 Big soft rotating rings */
+.ring {
+  position: absolute;
+  width: 600px;
+  height: 600px;
+  border-radius: 50%;
+  border: 45px solid rgba(255,255,255,0.06);
+  filter: blur(3px);
+  animation: rotateRing 30s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes rotateRing {
+  0% { transform: rotate(0deg) scale(1); }
+  50% { transform: rotate(180deg) scale(1.1); }
+  100% { transform: rotate(360deg) scale(1); }
+}
+
+/* PUT THESE BELOW EVERYTHING (keeps previous CSS untouched) */
+
+  </style>
+</head>
+<body>
+   
+<!-- Floating particles -->
+<div class="particle" style="left:10%; animation-delay:0s;"></div>
+<div class="particle" style="left:25%; animation-delay:1s;"></div>
+<div class="particle" style="left:40%; animation-delay:2s;"></div>
+<div class="particle" style="left:55%; animation-delay:3s;"></div>
+<div class="particle" style="left:70%; animation-delay:1.5s;"></div>
+<div class="particle" style="left:85%; animation-delay:2.5s;"></div>
+<div class="particle" style="left:55%; animation-delay:3s;"></div>
+<div class="particle" style="left:70%; animation-delay:1.5s;"></div>
+<div class="particle" style="left:85%; animation-delay:2.5s;"></div>
+
+
+  <div class="card">
+    <h1>Team Buzzer</h1>
+    <div class="meta" style="display:flex;gap:12px;align-items:center;">
+      <div>Team: <span id="teamName">—</span></div>
+      <div class="status" id="connStatus">Connecting...</div>
+    </div>
+
+    <div id="info" class="small">Press the big buzzer when ready.</div>
+
+    <button id="buzzerBtn" class="buzzer" disabled aria-disabled="true" aria-label="Buzzer button">BUZZ</button>
+
+    <div class="controls" style="display:flex;align-items:center;gap:10px;margin-top:12px;">
+      <div style="flex:1"></div>
+      <div id="lastResult" class="small" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <!-- Socket.IO client - served by socket.io on the same host -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    (function () {
+      // If the team page is hosted on a different origin than the socket server,
+      // set SERVER_URL to e.g. "http://192.168.1.36:3000"
+      const SERVER_URL = null; // <-- set to "http://192.168.1.36:3000" if needed
+
+      // util: read query param tid
+      function getQueryParam(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+      }
+
+      // Shade color helper (negative percent -> darker, positive -> lighter)
+      function shadeColor(color, percent) {
+        if (!color || color[0] !== '#' || (color.length !== 7 && color.length !== 4)) {
+          return color || '#000';
+        }
+        if (color.length === 4) {
+          const r = color[1], g = color[2], b = color[3];
+          color = `#${r}${r}${g}${g}${b}${b}`;
+        }
+
+        let R = parseInt(color.substring(1,3),16);
+        let G = parseInt(color.substring(3,5),16);
+        let B = parseInt(color.substring(5,7),16);
+
+        R = parseInt(R * (100 + percent) / 100);
+        G = parseInt(G * (100 + percent) / 100);
+        B = parseInt(B * (100 + percent) / 100);
+
+        R = (R < 255) ? R : 255;
+        G = (G < 255) ? G : 255;
+        B = (B < 255) ? B : 255;
+
+        const RR = (R.toString(16).length == 1) ? "0"+R.toString(16) : R.toString(16);
+        const GG = (G.toString(16).length == 1) ? "0"+G.toString(16) : G.toString(16);
+        const BB = (B.toString(16).length == 1) ? "0"+B.toString(16) : B.toString(16);
+
+        return "#" + RR + GG + BB;
+      }
+
+      const tid = getQueryParam('tid');
+      const teamNameEl = document.getElementById('teamName');
+      const connStatusEl = document.getElementById('connStatus');
+      const buzzerBtn = document.getElementById('buzzerBtn');
+      const lastResultEl = document.getElementById('lastResult');
+
+      // ensure buzzer disabled on initial load
+      buzzerBtn.disabled = true;
+      buzzerBtn.setAttribute('aria-disabled', 'true');
+
+      if (!tid) {
+        teamNameEl.textContent = 'Missing TID';
+        connStatusEl.textContent = 'No tid in URL';
+        connStatusEl.classList.add('off');
+        document.getElementById('info').textContent = 'Open with ?tid=your_team_id (from admin panel links).';
+        return;
+      }
+
+      // Choose connection target
+      const socketTarget = SERVER_URL || location.origin;
+      // Use websocket first, fallback transports
+      let socket = io(socketTarget, { transports: ['websocket', 'polling'], reconnectionAttempts: 5 });
+
+      function setStatus(text, isOk = true) {
+        connStatusEl.textContent = text;
+        connStatusEl.classList.toggle('ok', isOk);
+        connStatusEl.classList.toggle('off', !isOk);
+      }
+
+      // Register and attach handlers
+      function registerSocket() {
+        if (socket && socket.connected) {
+          socket.emit('register', { role: 'team', tid });
+          setStatus('Connected', true);
+          // keep disabled until questionStarted arrives
+          buzzerBtn.disabled = true;
+          buzzerBtn.setAttribute('aria-disabled', 'true');
+        } else {
+          setStatus('Connecting...', false);
+          buzzerBtn.disabled = true;
+          buzzerBtn.setAttribute('aria-disabled', 'true');
+        }
+      }
+
+      // connection lifecycle
+      socket.on('connect', () => {
+        console.log('socket connected', socket.id);
+        setStatus('Connected', true);
+        registerSocket();
+      });
+
+      socket.on('connect_error', (err) => {
+        console.warn('connect_error', err);
+        setStatus('Connection error', false);
+        buzzerBtn.disabled = true;
+        buzzerBtn.setAttribute('aria-disabled', 'true');
+      });
+
+      socket.on('disconnect', (reason) => {
+        console.log('disconnected', reason);
+        setStatus('Disconnected', false);
+        buzzerBtn.disabled = true;
+        buzzerBtn.setAttribute('aria-disabled', 'true');
+      });
+
+      socket.on('reconnect_attempt', (n) => {
+        setStatus('Reconnecting…', false);
+      });
+
+      // Update team name + dynamic team color buzzer
+      socket.on('teamListUpdate', (teams) => {
+        if (teams && teams[tid]) {
+          const team = teams[tid];
+          teamNameEl.textContent = team.name || tid;
+
+          // choose color (fallback)
+          const color = team.color || "#ff0066";
+          const darker = shadeColor(color, -30);
+
+          // apply CSS variables on :root so hover/active use them too
+          document.documentElement.style.setProperty('--buzzer-color', color);
+          document.documentElement.style.setProperty('--buzzer-dark', darker);
+          document.documentElement.style.setProperty('--buzzer-glow', color);
+        } else {
+          // if server doesn't have team info, still show tid
+          teamNameEl.textContent = tid;
+        }
+      });
+
+      // ENABLE buzzer only when question starts
+      socket.on('questionStarted', () => {
+        document.getElementById('info').textContent = 'Question active — Press buzzer!';
+        if (socket.connected) {
+          buzzerBtn.disabled = false;
+          buzzerBtn.setAttribute('aria-disabled', 'false');
+        }
+        // subtle pulse animation while active (keeps accessible)
+        try {
+          buzzerBtn.animate(
+            [{ transform: 'scale(1)' }, { transform: 'scale(1.03)' }, { transform: 'scale(1)' }],
+            { duration: 1000, iterations: Infinity }
+          );
+        } catch (e) {}
+      });
+
+      // DISABLE buzzer when question is reset or idle
+      socket.on('questionReset', () => {
+        document.getElementById('info').textContent = 'Idle — wait for next question.';
+        buzzerBtn.disabled = true;
+        buzzerBtn.setAttribute('aria-disabled', 'true');
+        // cancel animations if any
+        try { buzzerBtn.getAnimations().forEach(a => a.cancel()); } catch(e){}
+      });
+
+      socket.on('buzzerResult', ({ ranked }) => {
+        if (Array.isArray(ranked) && ranked.length) {
+          const pos = ranked.find(r => r.teamId === tid);
+          lastResultEl.textContent = pos ? `Position: ${pos.position}` : '';
+        } else {
+          lastResultEl.textContent = '';
+        }
+      });
+
+      // Buzzer press - immediately disable for this client to avoid re-presses
+      buzzerBtn.addEventListener('click', () => {
+        if (!socket || !socket.connected) return alert('Not connected to server');
+        // guard: only allow press if question active
+        if (buzzerBtn.disabled) return;
+        buzzerBtn.disabled = true;
+        buzzerBtn.setAttribute('aria-disabled', 'true');
+        socket.emit('buzzerPress', { tid });
+        document.getElementById('info').textContent = 'Buzzer pressed — waiting...';
+        // small press ripple effect
+        try {
+          buzzerBtn.animate(
+            [{ boxShadow: getComputedStyle(buzzerBtn).boxShadow }, { boxShadow: '0 0 40px white' }, { boxShadow: getComputedStyle(buzzerBtn).boxShadow }],
+            { duration: 300 }
+          );
+        } catch (e) {}
+      });
+
+      // initial UI
+      teamNameEl.textContent = tid;
+      setStatus('Connecting...', false);
+
+      // Safety: if connection doesn't happen, show console message
+      setTimeout(() => {
+        if (!socket.connected) console.warn('Socket still not connected — check server, network, and that you opened the page via http://');
+      }, 1500);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Admin Panel</title>
+  <link rel="icon" type="image/png" href="./red-buzzer-button-vector-set-600nw-2385327401.webp">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+
+ <style>
+  :root {
+    --bg1: #1e3c72;
+    --bg2: #2a5298;
+    --card: rgba(255,255,255,0.15);
+    --card-blur: blur(15px);
+    --shadow: rgba(0,0,0,0.2);
+
+    --primary: #4caf50;
+    --danger: #f44336;
+    --info: #2196f3;
+    --warning: #ff9800;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background: linear-gradient(135deg, var(--bg1), var(--bg2));
+    font-family: "Arial", sans-serif;
+    display: flex;
+    justify-content: center;
+    overflow-y: auto;
+  }
+
+  .container {
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: rgb(255, 0, 0);
+    font-size: 2.3rem;
+    letter-spacing: 1px;
+    text-shadow: 0 3px 10px rgba(0,0,0,5);
+  }
+
+  .card {
+    background: var(--card);
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px var(--shadow);
+    backdrop-filter: var(--card-blur);
+    -webkit-backdrop-filter: var(--card-blur);
+    margin-bottom: 20px;
+    color: white;
+  }
+
+  h3 {
+    margin-top: 0;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 15px;
+  }
+
+  .row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  input, select {
+    padding: 12px;
+    border-radius: 10px;
+    border: none;
+    flex: 1;
+    outline: none;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    font-size: 1rem;
+  }
+
+  input::placeholder {
+    color: #e5e5e5;
+  }
+
+  option {
+    color: black;
+  }
+
+  button {
+    padding: 12px 20px;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    transition: 0.2s;
+  }
+
+  button:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+
+  .btn-info { background: var(--info); }
+  .btn-warning { background: var(--warning); }
+  .btn-primary { background: var(--primary); }
+  .btn-danger { background: var(--danger); }
+
+  #log {
+    background: rgba(0,0,0,0.3);
+    padding: 15px;
+    border-radius: 12px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.4);
+    max-height: 260px;
+    overflow-y: auto;
+    color: white;
+    font-size: 0.95rem;
+  }
+
+  .log-entry {
+    padding: 8px;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    font-family: monospace;
+  }
+
+  .sound-control {
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:12px;
+    color: white;
+  }
+
+  #soundStatus {
+    font-weight: bold;
+  }
+
+  ul#teamItems {
+    list-style: none;
+    padding-left: 0;
+    color: white;
+  }
+
+  ul#teamItems li {
+    padding: 6px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>Quiz Admin Panel</h1>
+
+  <!-- ADD TEAM -->
+  <div class="card">
+    <h3>Add Team</h3>
+    <div class="row">
+      <input id="teamNameInput" placeholder="Team name">
+      <select id="teamColorInput">
+        <option value="#00bfff">Blue</option>
+        <option value="#32cd32">Green</option>
+        <option value="#ffd700">Yellow</option>
+        <option value="#ff0000">Red</option>
+      </select>
+      <button class="btn-info" id="addTeamBtn">Add</button>
+      <button class="btn-warning" id="clearTeamsBtn">Clear</button>
+    </div>
+  </div>
+
+  <!-- TEAM LIST -->
+  <div class="card">
+    <h3>Teams</h3>
+    <ul id="teamItems"></ul>
+  </div>
+
+  <!-- QUESTION CONTROLS -->
+  <div class="row">
+    <button class="btn-primary" id="startBtn">Start Question</button>
+    <button class="btn-danger" id="resetBtn">Reset Question</button>
+  </div>
+
+  <div class="card">
+    <div id="status">Status: Idle</div>
+    <div id="firstBuzzer" style="font-weight:bold;margin-top:5px;">First Buzzer: None</div>
+
+    <!-- Sound control (admin only) -->
+    <div class="sound-control">
+      <button id="enableSoundBtn" style="padding:8px 12px;border-radius:8px;">Enable sound</button>
+      <span id="soundStatus" style="opacity:0.85;">Sound: Off</span>
+    </div>
+  </div>
+
+  <h3>Buzzer Order</h3>
+  <div id="log"></div>
+
+</div>
+
+<!-- admin alarm audio (place alarm.mp3 in public/sound/) -->
+<audio id="adminAlarm" src="./sound/incorrect-buzzer-374194.mp3" preload="auto"></audio>
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script>
+  const socket = io();
+  const SERVER_IP = "192.168.1.70:3000";
+
+  socket.emit("register", { role: "admin" });
+
+  // Add team
+  document.getElementById("addTeamBtn").onclick = () => {
+    const name = document.getElementById("teamNameInput").value.trim();
+    const color = document.getElementById("teamColorInput").value;
+
+    if (!name) return alert("Enter team name");
+
+    socket.emit("addTeam", { name, color });
+    document.getElementById("teamNameInput").value = "";
+  };
+
+  // Clear teams
+  document.getElementById("clearTeamsBtn").onclick = () => {
+    if (confirm("Delete ALL teams?")) socket.emit("clearAllTeams");
+  };
+
+  // Update team list
+  socket.on("teamListUpdate", (teams) => {
+    const ul = document.getElementById("teamItems");
+    ul.innerHTML = "";
+
+    for (const tid in teams) {
+      const team = teams[tid];
+      const url = `http://${SERVER_IP}/team.html?tid=${tid}`;
+
+      const li = document.createElement("li");
+      li.innerHTML =
+        `<span style="color:${team.color};font-weight:bold">${team.name}</span>
+         — <a href="${url}" target="_blank">${url}</a>`;
+      ul.appendChild(li);
+    }
+  });
+
+  document.getElementById("startBtn").onclick = () => socket.emit("startQuestion");
+  document.getElementById("resetBtn").onclick = () => socket.emit("resetQuestion");
+
+  // SOUND: admin alarm handling
+  const alarm = document.getElementById("adminAlarm");
+  const enableSoundBtn = document.getElementById("enableSoundBtn");
+  const soundStatus = document.getElementById("soundStatus");
+  let soundEnabled = false;
+  let lastFirstTeam = null;
+
+  // User gesture to enable sound (avoids autoplay blocking)
+  enableSoundBtn.addEventListener("click", async () => {
+    try {
+      await alarm.play().catch(() => {});
+      alarm.pause();
+      alarm.currentTime = 0;
+      soundEnabled = true;
+      soundStatus.textContent = "Sound: On";
+      enableSoundBtn.style.display = "none";
+    } catch (e) {
+      console.warn("Unable to enable sound:", e);
+      alert("Unable to enable audio. Try again or use a different browser.");
+    }
+  });
+
+  socket.on("questionStarted", () => {
+    document.getElementById("status").textContent = "Status: Question Active";
+    document.getElementById("firstBuzzer").textContent = "First Buzzer: None";
+    document.getElementById("log").innerHTML = "";
+
+    // reset alarm and tracking
+    alarm.pause();
+    alarm.currentTime = 0;
+    lastFirstTeam = null;
+  });
+
+  socket.on("questionReset", () => {
+    document.getElementById("status").textContent = "Status: Idle";
+    document.getElementById("firstBuzzer").textContent = "First Buzzer: None";
+    document.getElementById("log").innerHTML = "";
+
+    // stop alarm
+    alarm.pause();
+    alarm.currentTime = 0;
+    lastFirstTeam = null;
+  });
+
+  socket.on("buzzerResult", ({ ranked }) => {
+    if (ranked.length > 0) {
+      document.getElementById("firstBuzzer").textContent =
+        "First Buzzer: " + ranked[0].teamName;
+    }
+
+    // Play alarm only when a new first buzzer appears
+    if (ranked.length > 0) {
+      const currentFirst = ranked[0].teamId;
+      if (soundEnabled && currentFirst && currentFirst !== lastFirstTeam) {
+        alarm.currentTime = 0;
+        alarm.play().catch(err => {
+          console.warn("Alarm play blocked:", err);
+        });
+        lastFirstTeam = currentFirst;
+      }
+    }
+
+    const logEl = document.getElementById("log");
+    logEl.innerHTML = "";
+
+    ranked.forEach(item => {
+      const div = document.createElement("div");
+      div.className = "log-entry";
+      div.style.color = item.color;
+      div.textContent = `${item.position}. ${item.teamName}`;
+      logEl.appendChild(div);
+    });
+  });
+</script>
+
+</body>
+</html>
