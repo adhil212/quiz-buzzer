@@ -21,12 +21,9 @@ const SESSION_SECRET = process.env.SESSION_SECRET || "change-this-secret";
 
 // ====== MONGO CONNECTION ======
 mongoose
-  .connect(MONGO_URL, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-  })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("MongoDB error:", err));
+ .connect(MONGO_URL)
+  .then(() => console.log("MongoDB Connected"))
+  .catch(err => console.error("MongoDB error:", err));
 
 // ====== MIDDLEWARE ======
 app.use(express.json());
@@ -36,11 +33,14 @@ const sessionMiddleware = session({
   secret: SESSION_SECRET,
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: MONGO_URL }),
+  store: MongoStore.create({
+    mongoUrl: MONGO_URL
+  }),
   cookie: {
     maxAge: 1000 * 60 * 60 * 24 // 1 day
   }
 });
+
 
 app.use(sessionMiddleware);
 

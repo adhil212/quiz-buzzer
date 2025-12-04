@@ -12,7 +12,7 @@
   "description": "",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "connect-mongo": "^6.0.0",
+    "connect-mongo": "^4.6.0",
     "express": "^5.2.1",
     "express-session": "^1.18.2",
     "mongoose": "^9.0.0",
